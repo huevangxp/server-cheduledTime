@@ -1,4 +1,6 @@
 const User = require('../models/user.medel');
+const ExcelJS = require("exceljs");
+
 // const { v4: uuidv4 } = require('uuid');
 
 // let pendingUsers = {};
@@ -186,6 +188,92 @@ exports.deleteUser = async (req, res) => {
         return res.status(500).json({ message: 'Server Error', error: err });
     }
 };
+
+
+exports.downloadExcel = async (req, res) => {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Users");
+
+        const users = await User.find(); // Assuming User.find() is a valid method to fetch users
+
+        // Define column headers
+        worksheet.columns = [
+            { header: "ID", key: "id", width: 10 },
+            { header: "Name", key: "name", width: 30 },
+            { header: "Email", key: "email", width: 30 },
+            {header:"password", key: "password", width: 30},
+            { header: 'ScheduledTime', key: 'scheduledTime', width: 30 }
+        ];
+
+        // Add data rows
+        users.forEach((user) => {
+            worksheet.addRow({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                password:user.password,
+                scheduledTime: user.scheduledTime
+            });
+        });
+
+        // Set response headers for Excel file download
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=users.xlsx"
+        );
+
+        // Send the Excel file as a stream to the response
+        await workbook.xlsx.write(res);
+        return res.status(200).send();
+    } catch (error) {
+        console.error("Error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+exports.uploadData = async(req, res)=>{
+    try {
+         
+            if (!req.file) {
+                return res.status(400).json({ error: "No file uploaded" });
+            }
+            // console.log(req.file);
+    
+            const workbook = new ExcelJS.Workbook();
+            const fileBuffer = req.file.buffer; // Access the file buffer
+    
+            await workbook.xlsx.load(fileBuffer); // Load the file from buffer
+    
+            const worksheet = workbook.getWorksheet(1);
+            const userData = [];
+    
+            worksheet.eachRow((row, rowNumber) => {
+                if (rowNumber !== 1) { // Skip header row
+                    userData.push({
+                        name: row.getCell(2).value,
+                        email: row.getCell(3).value,
+                        password:row.getCell(4).value,
+                        scheduledTime: row.getCell(5).value
+                    });
+                }
+            });
+    
+            // Assuming userData is an array of objects with name, email, and scheduledTime properties
+    console.log(userData)
+            // Save data to database
+            await User.create(userData);
+    
+            return res.status(200).json({ message: "Data uploaded successfully" });
+    } catch (error) {
+        return res.status(500).json({message:'Server Error', Error: error.message})
+    }
+}
+
 //
 //
 // // Function to generate random user data
