@@ -1,5 +1,82 @@
 const User = require('../models/user.medel');
+// const { v4: uuidv4 } = require('uuid');
 
+// let pendingUsers = {};
+//
+// const createUser = async (req, res) => {
+//     const { username,email, password, scheduledTime } = req.body;
+//
+//     try {
+//         // Validate the scheduled time
+//         const date = new Date(scheduledTime);
+//         if (isNaN(date.getTime())) {
+//             return res.status(400).json({ message: 'Invalid scheduled time' });
+//         }
+//
+//         const delay = date.getTime() - Date.now();
+//         if (delay <= 0) {
+//             return res.status(400).json({ message: 'Scheduled time must be in the future' });
+//         }
+//
+//         // Check if username already exists
+//         const existingUser = await User.findOne({ username });
+//         if (existingUser) {
+//             return res.status(400).json({ message: 'Username already exists' });
+//         }
+//
+//         // Create new user instance
+//         const timeoutId = uuidv4();
+//         const user = new User({ name:username, password, creationTimeoutId: timeoutId, email, scheduledTime });
+//
+//         // Save user initially with pending status
+//         await user.save();
+//
+//         // Set timeout for the specified delay
+//         const timeout = setTimeout(async () => {
+//             try {
+//                 user.isPending = false;
+//                 user.creationTimeoutId = null;
+//                 await user.save();
+//                 delete pendingUsers[timeoutId];
+//             } catch (error) {
+//                 console.error('Error finalizing user creation:', error);
+//             }
+//         }, delay);
+//
+//         // Store the timeout ID
+//         pendingUsers[timeoutId] = timeout;
+//
+//         res.status(201).json({ message: 'User creation initiated', userId: user._id, timeoutId });
+//     } catch (error) {
+//         console.error('Error creating user:', error);
+//         res.status(500).json({ message: 'Server Error', error: error.message });
+//     }
+// };
+//
+// const cancelUserCreation = async (req, res) => {
+//     const { timeoutId } = req.body;
+//
+//     try {
+//         if (pendingUsers[timeoutId]) {
+//             clearTimeout(pendingUsers[timeoutId]);
+//             delete pendingUsers[timeoutId];
+//
+//             // Find and remove the user
+//             await User.findOneAndDelete({ creationTimeoutId: timeoutId });
+//
+//             res.status(200).json({ message: 'User creation canceled' });
+//         } else {
+//             res.status(404).json({ message: 'User creation not found or already completed' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ message: 'Server Error', error: error.message });
+//     }
+// };
+//
+// module.exports = {
+//     createUser,
+//     cancelUserCreation,
+// };
 
 exports.createUser = async (req, res) => {
     try {
